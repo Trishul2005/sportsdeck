@@ -1,0 +1,12 @@
+.git
+.gitignore
+.next
+coverage
+node_modules
+npm-debug.log*
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+.env
+prisma/test.db
+tests

@@ -1,0 +1,5978 @@
+openapi: 3.0.0
+info:
+  title: Main Collection
+  version: 1.0.0
+  description: Contains the Postman docs for all of our api/endpoionts.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/threads:
+    get:
+      summary: Get Thread
+      responses:
+        default:
+          description: Get Thread by Title
+      tags:
+        - Threads
+      description: >-
+        ## Create Thread
+
+
+        **POST** `/api/threads`
+
+
+        Creates a new thread with a main post.
+
+
+        ### Headers
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+        Content-Type: application/json
+
+         ```
+
+        ### Request Body
+
+
+        ``` json
+
+        {
+          "title": "string (required)",
+          "mainPostId": "number (required)",
+          "teamId": "number (optional)",
+          "tags": ["string"] (optional)
+        }
+
+         ```
+
+        ### Parameters
+
+
+        - `title` (required): The title of the thread
+            
+        - `mainPostId` (required): ID of the post to use as the thread's main
+        post
+            
+        - `teamId` (optional): ID of the team this thread is associated with
+            
+        - `tags` (optional): Array of tag names to associate with the thread
+            
+
+        ### Success Response
+
+
+        **Code:** `200 OK`
+
+
+        ``` json
+
+        {
+            "id": 1,
+            "title": "Lakers vs Warriors Game Discussion",
+            "createdById": 5,
+            "teamId": 3,
+            "mainPostId": 42,
+            "createdAt": "2026-03-06T10:00:00.000Z",
+            "tags": [
+                {
+                    "tag": {
+                        "id": 1,
+                        "name": "game-thread"
+                    }
+                }
+            ],
+            "mainPost": {
+                "id": 42,
+                "content": "What a game!",
+                "authorId": 5
+            }
+        }
+
+         ```
+
+        ### Error Responses
+
+
+        **Code:** `401 Unauthorized`
+
+
+        ``` json
+
+        {
+            "error": "Unauthorized"
+        }
+
+         ```
+
+        **Code:** `403 Forbidden`
+
+
+        ``` json
+
+        {
+            "error": "User is banned"
+        }
+
+         ```
+
+        **Code:** `400 Bad Request`
+
+
+        ``` json
+
+        {
+            "error": "Title and mainPostId are required fields."
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "mainPostId must be a valid number."
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "This post is already used as a main post for another thread."
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+
+        ``` json
+
+        {
+            "error": "Post not found."
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "Team not found."
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+
+        ``` json
+
+        {
+            "error": "Failed to create thread"
+        }
+
+         ```
+
+        ---
+  /api/threads/:
+    post:
+      summary: Create Thread
+      responses:
+        default:
+          description: Create Thread with Tags
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: "## Get Threads\n\n**GET** `/api/threads`\n\nRetrieves a paginated list of threads with optional filters.\n\n### Query Parameters\n\n- `title` (optional): Filter threads by title (contains)\n- `author` (optional): Filter by author username\n- `team` (optional): Filter by team name\n- `tags` (optional): Filter by tag names (can be comma-separated or multiple query params)\n- `page` (optional, default: 1): Page number for pagination\n- `pageSize` (optional, default: 10): Number of items per page\n\n### Example Request\n\n```\nGET /api/threads?page=1&pageSize=10&team=Lakers&tags=game-thread,playoffs\n```\n\n### Success Response\n\n**Code:** `200 OK`\n\n```json\n[\n\t{\n\t\t\"id\": 1,\n\t\t\"title\": \"Lakers vs Warriors Discussion\",\n\t\t\"createdById\": 5,\n\t\t\"teamId\": 3,\n\t\t\"mainPostId\": 42,\n\t\t\"isVisible\": true,\n\t\t\"isClosed\": false,\n\t\t\"matchId\": null,\n\t\t\"opensAt\": null,\n\t\t\"closesAt\": null,\n\t\t\"createdAt\": \"2026-03-06T10:00:00.000Z\",\n\t\t\"updatedAt\": \"2026-03-06T10:00:00.000Z\",\n\t\t\"tags\": [\n\t\t\t{\n\t\t\t\t\"tag\": {\n\t\t\t\t\t\"id\": 1,\n\t\t\t\t\t\"name\": \"game-thread\"\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\t}\n]\n```\n\n### Error Responses\n\n**Code:** `400 Bad Request`\n\n```json\n{\n\t\"error\": \"Page and pageSize must be positive integers.\"\n}\n```\n\n**Code:** `404 Not Found`\n\n```json\n{\n\t\"error\": \"Author not found.\"\n}\n```\n\n```json\n{\n\t\"error\": \"Team not found.\"\n}\n```\n\n**Code:** `500 Internal Server Error`\n\n```json\n{\n\t\"error\": \"Error fetching threads.\"\n}\n```\n\n### Notes\n\n- Only returns visible threads\n- For threads associated with matches, only returns threads that are currently open (between opensAt and closesAt)\n- Tags can be specified multiple ways:\n    - `?tags=tag1,tag2` (comma-separated)\n    - `?tags=tag1&tags=tag2` (multiple params)"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                mainPostId:
+                  type: string
+            example:
+              title: Sample Title
+              mainPostId: ''
+  /api/threads/{threadId}:
+    put:
+      summary: Update Thread
+      responses:
+        default:
+          description: Close Thread
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: >-
+        ## Update Thread
+
+
+        **PUT** `/api/threads/{id}`
+
+
+        Updates a thread. Only the thread creator or an admin can update a
+        thread.
+
+
+        ### Headers
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+        Content-Type: application/json
+
+         ```
+
+        ### Path Parameters
+
+
+        - `id` (required): The ID of the thread to update
+            
+
+        ### Request Body
+
+
+        ``` json
+
+        {
+            "title": "string (optional)",
+            "mainPost": "string (optional)",
+            "isClosed": "boolean (optional)"
+        }
+
+         ```
+
+        ### Parameters
+
+
+        - `title` (optional): New title for the thread
+            
+        - `mainPost` (optional): Updated main post content
+            
+        - `isClosed` (optional): Whether the thread is closed
+            
+
+        ### Success Response
+
+
+        **Code:** `200 OK`
+
+
+        ``` json
+
+        {
+            "id": 1,
+            "title": "Updated Thread Title",
+            "createdById": 5,
+            "teamId": 3,
+            "mainPostId": 42,
+            "isClosed": false,
+            "isVisible": true,
+            "matchId": null,
+            "opensAt": null,
+            "closesAt": null,
+            "createdAt": "2026-03-06T10:00:00.000Z",
+            "updatedAt": "2026-03-06T11:30:00.000Z"
+        }
+
+         ```
+
+        ### Error Responses
+
+
+        **Code:** `401 Unauthorized`
+
+
+        ``` json
+
+        {
+            "error": "Unauthorized"
+        }
+
+         ```
+
+        **Code:** `403 Forbidden`
+
+
+        ``` json
+
+        {
+            "error": "User is banned"
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "User is not the owner of the thread or an admin"
+        }
+
+         ```
+
+        **Code:** `400 Bad Request`
+
+
+        ``` json
+
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+
+        ``` json
+
+        {
+            "error": "Thread not found."
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+
+        ``` json
+
+        {
+            "error": "Failed to update thread"
+        }
+
+         ```
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+            example:
+              title: Updated Title
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete Thread
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: >-
+        ## Delete Thread
+
+
+        **DELETE** `/api/threads/{id}`
+
+
+        Deletes a thread. Only the thread creator or an admin can delete a
+        thread.
+
+
+        ### Headers
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ### Path Parameters
+
+
+        - `id` (required): The ID of the thread to delete
+            
+
+        ### Success Response
+
+
+        **Code:** `200 OK`
+
+
+        ``` json
+
+        {
+            "message": "Thread deleted successfully"
+        }
+
+         ```
+
+        ### Error Responses
+
+
+        **Code:** `401 Unauthorized`
+
+
+        ``` json
+
+        {
+            "error": "Unauthorized"
+        }
+
+         ```
+
+        **Code:** `403 Forbidden`
+
+
+        ``` json
+
+        {
+            "error": "User is banned"
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "User is not the owner of the thread or an admin"
+        }
+
+         ```
+
+        **Code:** `400 Bad Request`
+
+
+        ``` json
+
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+
+        ``` json
+
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+
+        ``` json
+
+        {
+            "error": "Failed to delete thread"
+        }
+
+         ```
+
+        ### Notes
+
+
+        - Cascade delete will automatically remove associated posts, polls,
+        tags, and reports
+  /api/threads/{threadId}/report/:
+    post:
+      summary: Report Thread
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: |-
+        ## Report Thread
+
+        **POST** `/api/threads/{id}/report`
+
+        Reports a thread for inappropriate content. Uses AI to analyze toxicity.
+
+        ### Headers
+
+        ```
+        Authorization: Bearer <access_token>
+        Content-Type: application/json
+
+         ```
+
+        ### Path Parameters
+
+        - `id` (required): The ID of the thread to report
+            
+
+        ### Request Body
+
+        ``` json
+        {
+            "reason": "string (required)"
+        }
+
+         ```
+
+        ### Parameters
+
+        - `reason` (required): Explanation for why the thread is being reported
+            
+
+        ### Success Response
+
+        **Code:** `201 Created`
+
+        ``` json
+        {
+            "message": "Thread reported successfully",
+            "report": {
+                "id": 10,
+                "toxicity": 0.85,
+                "aiVerdict": "toxic",
+                "reportedById": 5,
+                "threadId": 1,
+                "reason": "Contains hate speech",
+                "createdAt": "2026-03-06T10:00:00.000Z"
+            }
+        }
+
+         ```
+
+        ### Error Responses
+
+        **Code:** `401 Unauthorized`
+
+        ``` json
+        {
+            "error": "Unauthorized"
+        }
+
+         ```
+
+        **Code:** `403 Forbidden`
+
+        ``` json
+        {
+            "error": "User is banned"
+        }
+
+         ```
+
+        **Code:** `400 Bad Request`
+
+        ``` json
+        {
+            "error": "Reason is required"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "You have already reported this thread"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+        ``` json
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Main post of thread not found"
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+        ``` json
+        {
+            "error": "Internal Server Error"
+        }
+
+         ```
+
+        ### Notes
+
+        - AI model used: `unitary/toxic-bert`
+            
+        - Toxicity score ranges from 0 (non-toxic) to 1 (toxic)
+            
+        - Users can only report a thread once
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+            example:
+              reason: This is a report for a thread.
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/threads/{threadId}/sentiment:
+    post:
+      summary: Create Sentiment
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: |-
+        ## Create Sentiment Analysis
+
+        **POST** `/api/threads/{id}/sentiment`
+
+        Performs sentiment analysis on all posts in a match-associated thread.
+
+        ### Headers
+
+        ```
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ### Path Parameters
+
+        - `id` (required): The ID of the thread to analyze
+            
+
+        ### Success Response
+
+        **Code:** `200 OK`
+
+        ``` json
+        {
+            "id": 5,
+            "matchId": 12,
+            "overall": 0.65,
+            "homeTeam": 0.72,
+            "awayTeam": -0.45,
+            "numPosts": 150
+        }
+
+         ```
+
+        ### Response Fields
+
+        - `id`: Sentiment record ID
+            
+        - `matchId`: Associated match ID
+            
+        - `overall`: Overall sentiment score (-1 to 1)
+            
+        - `homeTeam`: Sentiment towards home team (-1 to 1)
+            
+        - `awayTeam`: Sentiment towards away team (-1 to 1)
+            
+        - `numPosts`: Number of posts analyzed
+            
+
+        ### Error Responses
+
+        **Code:** `401 Unauthorized`
+
+        ``` json
+        {
+            "error": "Unauthorized"
+        }
+
+         ```
+
+        **Code:** `403 Forbidden`
+
+        ``` json
+        {
+            "error": "User is banned"
+        }
+
+         ```
+
+        **Code:** `400 Bad Request`
+
+        ``` json
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Thread is not associated with a match"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "No posts found in thread"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+        ``` json
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Match not found"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Teams not found"
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+        ``` json
+        {
+            "error": "Failed to perform sentiment analysis"
+        }
+
+         ```
+
+        ### Notes
+
+        - AI model used: `cardiffnlp/twitter-roberta-base-sentiment-latest`
+            
+        - Sentiment scores: positive (1), negative (-1), neutral (0)
+            
+        - Posts are processed in batches to avoid input size limits
+            
+        - Maximum input length: 512 characters per batch
+            
+        - Batch size: 10 posts
+    parameters:
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Sentiment
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: |-
+        ## Get Sentiment Analysis
+
+        **GET** `/api/threads/{id}/sentiment`
+
+        Retrieves existing sentiment analysis for a thread.
+
+        ### Path Parameters
+
+        - `id` (required): The ID of the thread
+            
+
+        ### Success Response
+
+        **Code:** `200 OK`
+
+        ``` json
+        {
+            "id": 5,
+            "matchId": 12,
+            "overall": 0.65,
+            "homeTeam": 0.72,
+            "awayTeam": -0.45,
+            "numPosts": 150,
+            "createdAt": "2026-03-06T10:00:00.000Z",
+            "updatedAt": "2026-03-06T10:00:00.000Z"
+        }
+
+         ```
+
+        ### Error Responses
+
+        **Code:** `400 Bad Request`
+
+        ``` json
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Thread is not associated with a match"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+        ``` json
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Sentiment analysis not found for this thread"
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+        ``` json
+        {
+            "error": "Failed to fetch sentiment analysis"
+        }
+
+         ```
+    put:
+      summary: Update Sentiment
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: >-
+        ## Update Sentiment Analysis
+
+
+        **PUT** `/api/threads/{id}/sentiment`
+
+
+        Updates sentiment analysis with new posts from the thread. Rate limited
+        to once per hour.
+
+
+        ### Path Parameters
+
+
+        - `id` (required): The ID of the thread
+            
+
+        ### Success Response
+
+
+        **Code:** `200 OK`
+
+
+        ``` json
+
+        {
+            "id": 5,
+            "matchId": 12,
+            "overall": 0.68,
+            "homeTeam": 0.75,
+            "awayTeam": -0.42,
+            "numPosts": 180,
+            "updatedAt": "2026-03-06T11:30:00.000Z"
+        }
+
+         ```
+
+        ### Error Responses
+
+
+        **Code:** `400 Bad Request`
+
+
+        ``` json
+
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "Thread is not associated with a match"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+
+        ``` json
+
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "Match not found"
+        }
+
+         ```
+
+        ``` json
+
+        {
+            "error": "Teams not found"
+        }
+
+         ```
+
+        **Code:** `429 Too Many Requests`
+
+
+        ``` json
+
+        {
+            "error": "Sentiment analysis was updated less than an hour ago. Please try again later."
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+
+        ``` json
+
+        {
+            "error": "Failed to update sentiment analysis"
+        }
+
+         ```
+
+        ### Notes
+
+
+        - Only analyzes posts created since the last update
+            
+        - If no new posts exist, returns the existing sentiment data
+            
+        - Uses weighted average based on post counts
+            
+        - Rate limited to prevent abuse: 1 update per hour
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      summary: Delete Sentiment
+      responses: {}
+      tags:
+        - Threads
+      security:
+        - BearerAuth: []
+      description: |-
+        ## Delete Sentiment Analysis
+
+        **DELETE** `/api/threads/{id}/sentiment`
+
+        Deletes sentiment analysis for a thread.
+
+        ### Path Parameters
+
+        - `id` (required): The ID of the thread
+            
+
+        ### Success Response
+
+        **Code:** `200 OK`
+
+        ``` json
+        {
+            "message": "Sentiment analysis deleted successfully"
+        }
+
+         ```
+
+        ### Error Responses
+
+        **Code:** `400 Bad Request`
+
+        ``` json
+        {
+            "error": "Invalid thread ID"
+        }
+
+         ```
+
+        ``` json
+        {
+            "error": "Thread is not associated with a match"
+        }
+
+         ```
+
+        **Code:** `404 Not Found`
+
+        ``` json
+        {
+            "error": "Thread not found"
+        }
+
+         ```
+
+        **Code:** `500 Internal Server Error`
+
+        ``` json
+        {
+            "error": "Failed to delete sentiment analysis"
+        }
+
+         ```
+  /api/post:
+    get:
+      summary: Post by ID
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: string
+          example: '{{postId}}'
+      responses: {}
+      tags:
+        - Posts
+      description: >-
+        ## **GET /api/post?id=POST_ID** – Fetch a Post
+
+
+        Retrieve a single post by its ID, including author information.
+
+
+        ### **Query Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | Post ID to fetch. |
+
+
+        **Example Request**
+
+
+        ```
+
+        GET /api/post?id=123
+
+         ```
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "id": 123,  
+             "content": "I think this is a really interesting topic!",  
+             "authorId": 12,  
+             "threadId": 12,  
+             "parentId": 45,  
+             "isVisible": true,  
+             "createdAt": "2026-03-06T15:45:00.000Z",  
+             "updatedAt": "2026-03-06T15:45:00.000Z",  
+             "author": {    "id": 12,    "username": "goat",    "avatar": "https://example.com/avatar.jpg"  }
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing or invalid post ID | `{ "error": "Post ID is required."
+        }` / `{ "error": "Invalid post ID." }` |
+
+        | 404 | Post not found | `{ "error": "Post not found." }` |
+
+        | 500 | Server error | `{ "error": "Failed to fetch post" }` |
+    post:
+      summary: Create Post
+      responses:
+        default:
+          description: Create Reply to Post
+      tags:
+        - Posts
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **POST /api/post** – Create a Post
+
+
+        Create a new post in a thread or as a reply to another post.  
+          
+        Automatically checks content for toxicity using Hugging Face Inference
+        API.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `content` | string | Yes | Text content of the post. |
+
+        | `threadId` | number | Yes, if posting in a thread | ID of the thread
+        to post in. |
+
+        | `parentId` | number | No | ID of the parent post if replying. |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "content": "I think this is a really interesting topic!", 
+        "threadId": 12,  "parentId": 45}
+
+         ```
+
+        ### **Behavior & Rules**
+
+
+        - Posts are **rejected if content is highly toxic** (`toxic` ≥ 0.5 or
+        `severe_toxic`).
+            
+        - Posts with low toxicity are **hidden and reported** for moderator
+        review.
+            
+        - Posts in **closed or hidden threads** are rejected.
+            
+        - Posts replying to **hidden parent posts** are rejected.
+            
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "id": 123,  
+             "content": "I think this is a really interesting topic!",  
+             "authorId": 12,  
+             "threadId": 12,  
+             "parentId": 45,  
+             "isVisible": true,  
+             "createdAt": "2026-03-06T15:45:00.000Z",  
+             "updatedAt": "2026-03-06T15:45:00.000Z"
+        }
+
+         ```
+
+        > 
+
+
+        **Note:** `isVisible` may be `false` if the post is flagged for
+        low-toxicity content.
+
+         
+          
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing content | `{ "error": "Content is required to create a
+        post." }` |
+
+        | 400 | Invalid threadId | `{ "error": "Invalid thread ID." }` |
+
+        | 400 | Invalid parentId | `{ "error": "Invalid parent post ID." }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 403 | Thread closed, hidden, not open yet | `{ "error": "Thread is
+        closed." }` / `{ "error": "Thread is hidden." }` / `{ "error": "Thread
+        is not open yet." }` |
+
+        | 403 | Parent post hidden | `{ "error": "Parent post is hidden." }` |
+
+        | 404 | Thread or parent post not found | `{ "error": "Thread not
+        found." }` / `{ "error": "Parent post not found." }` |
+
+        | 422 | Highly toxic content | `{ "error": "Content is too toxic and has
+        been rejected." }` |
+
+        | 500 | Server error | `{ "error": "Failed to create post" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+            example:
+              title: best title
+              content: this is the cool content of the post
+  /api/post/{postId}/:
+    put:
+      summary: Update Post
+      responses:
+        default:
+          description: Hide the Post
+      tags:
+        - Posts
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **PUT /api/post/\[id\]** – Update a Post
+
+
+        Update the content or visibility of a post. Content is checked for
+        toxicity using Hugging Face Inference API.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | ID of the post to update. |
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `content` | string | Yes | New content of the post. Cannot be empty. |
+
+        | `isHidden` | boolean | No | Optional flag to hide or show the post. |
+
+        | `flagged` | boolean | No | Optional flag to mark the post for review.
+        |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "content": "Updated content of the post",  "isHidden": false}
+
+         ```
+
+        ### **Behavior & Rules**
+
+
+        - Only the **author** or an **admin** can update the post.
+            
+        - Posts in **closed threads** cannot be updated.
+            
+        - Content is analyzed for toxicity:
+            
+            - Low toxicity (`toxic` < 0.5) → post is updated and reported for review.
+                
+            - High toxicity (`toxic` ≥ 0.5 or `severe_toxic`) → update is rejected and reported.
+                
+        - Post `version` is incremented with each successful update.
+            
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "id": 123,  
+             "content": "Updated content of the post",  
+             "authorId": 12,  
+             "threadId": 45,  
+             "parentId": null,  
+             "isHidden": false,  
+             "version": 2,  
+             "createdAt": "2026-03-06T15:45:00.000Z",  
+             "updatedAt": "2026-03-06T16:00:00.000Z"
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing or empty content | `{ "error": "Missing content field"
+        }` / `{ "error": "Content cannot be empty" }` |
+
+        | 400 | Invalid post ID | `{ "error": "Invalid post ID." }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 403 | User not author/admin | `{ "error": "User is not the author of
+        the post" }` |
+
+        | 403 | Post in closed thread | `{ "error": "Cannot edit post in a
+        closed thread" }` |
+
+        | 404 | Post not found | `{ "error": "Post not found" }` |
+
+        | 422 | Highly toxic content | `{ "error": "Content is too toxic and has
+        been rejected." }` |
+
+        | 500 | Server error | `{ "error": "Failed to update post" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                isHidden:
+                  type: boolean
+            example:
+              content: This is some updated content. Au revoir!
+              isHidden: true
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete Post
+      responses: {}
+      tags:
+        - Posts
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **DELETE /api/post/\[id\]** – Delete a Post
+
+
+        Delete a post by ID. Only authors or admins can perform deletion. Posts
+        in closed threads cannot be deleted.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | ID of the post to delete. |
+
+
+        ### **Behavior & Rules**
+
+
+        - Only the **author** or an **admin** can delete the post.
+            
+        - Posts in **closed threads** cannot be deleted.
+            
+        - Ensures **proper cascade deletion** if the post has replies or related
+        data.
+            
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  "message": "Post deleted successfully"}
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid post ID | `{ "error": "Invalid post ID." }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 403 | User not author/admin | `{ "error": "User is not the author of
+        the post" }` |
+
+        | 403 | Post in closed thread | `{ "error": "Cannot delete post in a
+        closed thread" }` |
+
+        | 404 | Post not found | `{ "error": "Post not found" }` |
+
+        | 500 | Server error | `{ "error": "Failed to delete post" }` |
+  /api/post/{postId}/report:
+    post:
+      summary: Create Post Report
+      responses: {}
+      tags:
+        - Posts
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **POST /api/post/\[id\]/report** – Create a Report
+
+
+        Create a report for a specific post. Reports include a **user-provided
+        reason** and an **AI-generated toxicity verdict**.
+
+
+        This endpoint **requires JWT authentication**. Users cannot report the
+        same post more than once.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | ID of the post to report. |
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `reason` | string | Yes | Reason for reporting the post. |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "reason": "This post contains offensive language."}
+
+         ```
+
+        ### **Behavior & Rules**
+
+
+        1. **Authentication & Permissions**
+            
+            - Only authenticated users can report posts.
+                
+            - Users who are banned cannot submit reports.
+                
+        2. **Post Validation**
+            
+            - Checks if the post exists.
+                
+            - Prevents duplicate reports by the same user for the same post.
+                
+        3. **AI Content Analysis**
+            
+            - Uses Hugging Face Inference API (`unitary/toxic-bert`) to determine:
+                
+                - `toxicity` score (0 to 1)
+                    
+                - `aiVerdict` label (`non-toxic`, `toxic`, `severe_toxic`)
+                    
+            - For test environments or mocked scenarios, a low toxicity result is returned.
+                
+        4. **Database Entry**
+            
+            - Creates a report entry with:
+                
+                - `reportedById` (user ID)
+                    
+                - `postId`
+                    
+                - `reason`
+                    
+                - `toxicity` and `aiVerdict` from AI analysis
+                    
+        5. **Duplicate Reports**
+            
+            - Users cannot report the same post more than once. Attempts will return an error.
+                
+
+        ### **Success Response (201 Created)**
+
+
+        ```
+
+        {  
+             "message": "Report created successfully",  
+             "report":  
+                {    
+                "id": 456,    "postId": 123,    "reportedById": 12,    "reason": "This post contains offensive language.",    "toxicity": 0.1,    "aiVerdict": "non-toxic",    "createdAt": "2026-03-06T16:30:00.000Z"  
+                }
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing reason | `{ "error": "Reason is required" }` |
+
+        | 400 | Invalid post ID | `{ "error": "Invalid post ID" }` |
+
+        | 400 | Duplicate report by same user | `{ "error": "You have already
+        reported this post" }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User is banned | `{ "error": "User is banned" }` |
+
+        | 404 | Post not found | `{ "error": "Post not found" }` |
+
+        | 500 | Server error | `{ "error": "Internal Server Error" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+            example:
+              reason: This is a report reason
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/post/{postId}/translate:
+    post:
+      summary: Translate Post
+      responses: {}
+      tags:
+        - Posts
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **POST /api/post/\[id\]/translate** – Translate a Post
+
+
+        Translate the content of a specific post into English using the Hugging
+        Face Translation API (`Helsinki-NLP/opus-mt-mul-en`).
+
+
+        ### **Headers**
+
+
+        | Header | Required | Description |
+
+        | --- | --- | --- |
+
+        | `x-mock-external-apis` | Optional | If `true`, forces the API to
+        return a mocked translation (used for testing). |
+
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | ID of the post to translate. Must be a top-level
+        post. |
+
+
+        ### **Behavior & Rules**
+
+
+        1. **Post Validation**
+            
+            - Checks if the post exists.
+                
+        2. **Translation**
+            
+            - Uses Hugging Face Translation API to convert post content to English.
+                
+            - In **mock mode**, returns a mocked translation string prefixed with `[MOCK]`.
+                
+        3. **Error Handling**
+            
+            - Invalid or missing post IDs.
+                
+            - Post not found.
+                
+            - Post is a reply (translation only allowed for top-level posts).
+                
+            - Issues with external API calls (Hugging Face).
+                
+
+        ---
+
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "id": "123",  
+             "message": "Translation fetched successfully",  
+             "originalText": "Hola, ¿cómo estás?",  
+             "translatedText": "Hello, how are you?"
+        }
+
+         ```
+
+        **Mock Response Example**
+
+
+        ```
+
+        {  
+             "id": "123",  
+             "message": "Translation fetched successfully",  
+             "originalText": "Hola, ¿cómo estás?",  
+             "translatedText": "[MOCK] Hola, ¿cómo estás?"     
+        }
+
+         ```
+
+        ---
+
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 404 | Post not found | `{ "error": "Post not found" }` |
+
+        | 500 | External API failure or server error | `{ "error": "Failed to
+        fetch translation" }` |
+
+
+        ---
+
+
+        ### **Notes**
+
+
+        - Only **top-level posts** (posts without `parentId`) can be translated.
+            
+        - The endpoint is **POST** to allow passing headers for mock testing; no
+        body parameters are required.
+            
+        - Mock mode is helpful for **unit testing** or when API usage is
+        limited.
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/poll:
+    get:
+      summary: Get Poll
+      parameters:
+        - name: threadId
+          in: query
+          schema:
+            type: string
+          example: '{{threadId}}'
+      responses:
+        default:
+          description: Get Poll by Post
+      tags:
+        - Polls
+      description: >-
+        ## **GET /api/poll** – Fetch Polls
+
+
+        Retrieve polls optionally filtered by thread or post. Supports
+        pagination.
+
+
+        ### **Query Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `threadId` | number | No | Fetch polls for a specific thread. Must
+        exist. |
+
+        | `postId` | number | No | Fetch polls for a specific post. Must exist.
+        |
+
+        | `page` | number | No | Pagination page number. Default: `1`. |
+
+        | `pageSize` | number | No | Number of polls per page. Default: `10`. |
+
+
+        > 
+
+
+        Either `threadId` or `postId` can be provided, or neither to fetch all
+        polls.
+
+         
+          
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        [  {    "id": 123,    "question": "Who will win the championship?",   
+        "deadline": "2026-04-01T23:59:59.000Z",    "threadId": 45,    "postId":
+        67,    "createdBy": {      "id": 12,      "username": "trishul",     
+        "avatar": "https://example.com/avatar.png"    },    "options": [      {
+        "id": 1, "text": "Team A", "votes": [ { "userId": 2 }, { "userId": 5 } ]
+        },      { "id": 2, "text": "Team B", "votes": [] }    ],    "createdAt":
+        "2026-03-06T15:00:00.000Z"  }]
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid threadId or postId | `{ "error": "threadId must be a
+        valid number if provided." }` |
+
+        | 404 | Thread or post not found | `{ "error": "Thread not found." }` /
+        `{ "error": "Post not found." }` |
+
+        | 500 | Unexpected server error | `{ "error": "Failed to fetch polls" }`
+        |
+  /api/poll/:
+    post:
+      summary: Create Poll
+      responses:
+        default:
+          description: Create Poll associated with Post
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **POST /api/poll** – Create a Poll
+
+
+        Create a poll in a thread or associated with a specific post. Requires
+        authentication.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `threadId` | number | Yes | Thread where the poll is created. Thread
+        must exist and be open/visible. |
+
+        | `postId` | number | No | Optional post in the thread to attach the
+        poll to. Must exist and belong to the thread. |
+
+        | `question` | string | Yes | Poll question. |
+
+        | `options` | string\[\] | Yes | Array of option texts (min 2). |
+
+        | `deadline` | string (ISO 8601) | Yes | Poll deadline; must be in the
+        future. |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "threadId": 45,  "postId": 67,  "question": "Which team will win?", 
+        "options": ["Team X", "Team Y", "Team Z"],  "deadline":
+        "2026-05-01T23:59:59.000Z"}
+
+         ```
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  "id": 123,  "question": "Which team will win?",  "deadline":
+        "2026-05-01T23:59:59.000Z",  "threadId": 45,  "postId": 67, 
+        "createdById": 12,  "options": [    { "id": 1, "text": "Team X" },    {
+        "id": 2, "text": "Team Y" },    { "id": 3, "text": "Team Z" }  ], 
+        "createdAt": "2026-03-06T15:00:00.000Z"}
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing or invalid threadId | `{ "error": "Valid threadId is
+        required." }` |
+
+        | 400 | Missing question | `{ "error": "Question is required." }` |
+
+        | 400 | Less than 2 options | `{ "error": "At least two options are
+        required." }` |
+
+        | 400 | Invalid deadline | `{ "error": "Valid deadline is required." }`
+        |
+
+        | 400 | Deadline in the past | `{ "error": "Deadline must be in the
+        future." }` |
+
+        | 400 | postId does not belong to thread | `{ "error": "Post does not
+        belong to the specified thread." }` |
+
+        | 403 | Thread closed or hidden | `{ "error": "Cannot create poll in a
+        closed thread." }` / `{ "error": "Cannot create poll in a hidden
+        thread." }` |
+
+        | 403 | User banned | `{ "error": "User is banned." }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 404 | Thread or post not found | `{ "error": "Thread not found." }` /
+        `{ "error": "Post not found." }` |
+
+        | 500 | Unexpected server error | `{ "error": "Failed to create poll" }`
+        |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                threadId:
+                  type: string
+                question:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: string
+                deadline:
+                  type: string
+                  format: date
+            example:
+              threadId: ''
+              question: This is a question
+              options:
+                - Option 1
+                - Option 2
+              deadline: '2099-01-01'
+  /api/poll/{pollId}:
+    put:
+      summary: Update Poll
+      responses:
+        default:
+          description: Update Poll example
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **PUT /api/poll/:id** – Update a Poll
+
+
+        Update an existing poll’s question, options, or deadline.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+        - Only the poll creator or an admin can update.
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Description |
+
+        | --- | --- | --- |
+
+        | `id` | number | Poll ID to update |
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Description |
+
+        | --- | --- | --- |
+
+        | `question` | string | New poll question |
+
+        | `options` | string\[\] | New options array (min 2 options) |
+
+        | `deadline` | string (ISO 8601) | New deadline (must be in the future)
+        |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  
+             "question": "Which team will win?",  
+             "options": ["Team X", "Team Y"],  
+             "deadline": "2026-05-01T23:59:59.000Z"
+        }
+
+         ```
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "id": 123,  
+             "question": "Which team will win?",  
+             "deadline": "2026-05-01T23:59:59.000Z",  
+             "createdById": 45,  
+             "options": 
+             [    
+                { "id": 1, "text": "Team X" },    { "id": 2, "text": "Team Y" }          
+             ]        
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid poll ID | `{ "error": "Invalid poll ID" }` |
+
+        | 400 | Less than 2 options | `{ "error": "At least 2 options required"
+        }` |
+
+        | 400 | Invalid deadline format | `{ "error": "Invalid deadline format"
+        }` |
+
+        | 400 | Deadline in the past | `{ "error": "Deadline must be in the
+        future" }` |
+
+        | 401 | Missing or invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User is banned | `{ "error": "User is banned" }` |
+
+        | 403 | Not creator or admin | `{ "error": "User is not the creator of
+        the poll" }` |
+
+        | 404 | Poll not found | `{ "error": "Poll not found" }` |
+
+        | 500 | Unexpected error | `{ "error": "Failed to update poll" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: string
+            example:
+              question: New question.
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: '{{pollId}}'
+  /api/poll/{pollId}/:
+    delete:
+      summary: Delete Poll
+      responses: {}
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **DELETE /api/poll/:id** – Delete a Poll
+
+
+        Delete a poll. Only the poll creator or an admin can delete it.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+        - Only the poll creator or an admin can delete.
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Description |
+
+        | --- | --- | --- |
+
+        | `id` | number | Poll ID to delete |
+
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        { "message": "Poll deleted successfully" }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid poll ID | `{ "error": "Invalid poll ID" }` |
+
+        | 401 | Missing or invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User is banned | `{ "error": "User is banned" }` |
+
+        | 403 | Not creator or admin | `{ "error": "User is not the creator of
+        the poll" }` |
+
+        | 404 | Poll not found | `{ "error": "Poll not found" }` |
+
+        | 500 | Unexpected error | `{ "error": "Failed to delete poll" }` |
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: '{{pollId}}'
+  /api/poll/{pollId}/vote:
+    post:
+      summary: Vote in Poll
+      responses: {}
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **POST /api/poll/\[id\]/vote** – Cast a Vote
+
+
+        Create a vote for a poll. Each user can only vote **once** per poll.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | Poll ID to vote on. |
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `optionId` | number | Yes | The ID of the poll option to vote for. |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "optionId": 5}
+
+         ```
+
+        ### **Success Response (201 Created)**
+
+
+        ```
+
+        {  
+
+        "message": "Vote cast successfully",  
+
+        "vote": 
+             {    "id": 123,    "pollId": 45,    "optionId": 5,    "userId": 12  }
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing pollId or optionId | `{ "error": "Missing required
+        fields" }` |
+
+        | 400 | Invalid pollId or optionId format | `{ "error": "Invalid ID
+        format" }` |
+
+        | 400 | User already voted | `{ "error": "User has already voted in this
+        poll" }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 404 | Poll not found | `{ "error": "Poll not found" }` |
+
+        | 500 | Server error | `{ "error": "Failed to cast vote" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                optionId:
+                  type: integer
+            example:
+              optionId: 1
+    parameters:
+      - name: pollId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: '{{pollId}}'
+    get:
+      summary: Get Vote
+      responses: {}
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **GET /api/poll/\[id\]/vote** – Check User Vote
+
+
+        Retrieve the current authenticated user's vote for a poll. Returns
+        `null` if the user has not voted.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | Poll ID to check vote for. |
+
+
+        ### **Success Response (200 OK)**
+
+
+        - If user has voted:
+            
+
+        ```
+
+        {  
+             "userVote": 
+                {    "id": 123,    "pollId": 45,    "optionId": 5,    "userId": 12  }
+        }
+
+         ```
+
+        - If user has **not voted**:
+            
+
+        ```
+
+        {  "userVote": null}
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid pollId | `{ "error": "Invalid poll ID" }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 404 | Poll not found | `{ "error": "Poll not found" }` |
+
+        | 500 | Server error | `{ "error": "Failed to check user vote" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+    patch:
+      summary: Update Vote
+      responses: {}
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **PATCH /api/poll/\[id\]/vote** – Update Vote
+
+
+        Change an existing vote to a different poll option.
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | Poll ID to update vote for. |
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `optionId` | number | Yes | The new option ID to vote for. |
+
+
+        **Example Request Body**
+
+
+        ```
+
+        {  "optionId": 6}
+
+         ```
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "message": "Vote updated successfully",  
+             "vote": 
+             {    "id": 123,    "pollId": 45,    "optionId": 6,    "userId": 12  }
+        }
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Missing pollId or optionId | `{ "error": "Missing required
+        fields" }` |
+
+        | 400 | Invalid pollId or optionId | `{ "error": "Invalid ID format" }`
+        |
+
+        | 400 | User has not voted yet | `{ "error": "User has not voted in this
+        poll" }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 404 | Poll not found | `{ "error": "Poll not found" }` |
+
+        | 500 | Server error | `{ "error": "Failed to update vote" }` |
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                optionId:
+                  type: integer
+            example:
+              optionId: 2
+    delete:
+      summary: Remove Vote
+      responses: {}
+      tags:
+        - Polls
+      security:
+        - BearerAuth: []
+      description: >-
+        ## **DELETE /api/poll/\[id\]/vote** – Remove Vote
+
+
+        Remove the current user's vote from a poll (like “unvoting”).
+
+
+        ### **Authentication**
+
+
+        - Header: `Authorization: Bearer`
+            
+
+        ### **URL Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | Poll ID to remove vote from. |
+
+
+        ### **Success Response (200 OK)**
+
+
+        ```
+
+        {  "message": "Vote removed successfully"}
+
+         ```
+
+        ### **Error Responses**
+
+
+        | Status | Condition | Response |
+
+        | --- | --- | --- |
+
+        | 400 | Invalid pollId | `{ "error": "Invalid poll ID" }` |
+
+        | 401 | Missing/invalid token | `{ "error": "Unauthorized" }` / `{
+        "error": "Invalid token" }` |
+
+        | 403 | User banned | `{ "error": "User is banned" }` |
+
+        | 404 | Poll or vote not found | `{ "error": "Poll not found" }` / `{
+        "error": "Vote not found" }` |
+
+        | 500 | Server error | `{ "error": "Failed to remove vote" }` |
+  /api/user/signup:
+    post:
+      summary: Signup
+      responses: {}
+      tags:
+        - User
+      description: >-
+        # POST /api/user/signup
+
+
+        This endpoint registers a new user in the system
+
+
+        ### **Request Body**
+
+
+        | Field | Type | Description |
+
+        | --- | --- | --- |
+
+        | `email` | string | User's email address |
+
+        | `username` | string | Desired username |
+
+        | `password` | string | Plain-text password (will be hashed before
+        storage) |
+
+
+        **Example Request**:
+
+
+        ```
+
+        {  
+
+        "email": "user@example.com",  
+
+        "username": "newuser",  
+
+        "password": "securepassword123"
+
+        }
+
+         ```
+
+        ### **Responses**
+
+
+        **Success (200 OK)**
+
+
+        Returns the newly created user object (password is hashed).
+
+
+        ```
+
+        {  "user": {    
+             "id": 1,    
+             "email": "user@example.com",    
+             "username": "newuser",    
+             "password": "$2b$10$hashedpassword...",   
+             "createdAt": "2026-03-06T00:00:00.000Z",    
+             "updatedAt": "2026-03-06T00:00:00.000Z"  
+             }
+        }
+
+         ```
+
+        **Client Errors (400 Bad Request)**
+
+
+        Occurs if:
+
+
+        - Required fields are missing.
+            
+        - Fields are not strings.
+            
+        - Email or username already exists.
+            
+
+        ```
+
+        { "error": "Username already exists." }
+
+         ```
+
+        **Server Error (500 Internal Server Error)**
+
+
+        Returned if registration fails due to unexpected server or database
+        errors.
+
+
+        ```
+
+        { "error": "Failed to register user" }
+
+         ```
+
+        ### **Notes**
+
+
+        - Passwords are hashed using bcrypt with 10 salt rounds.
+            
+        - Unique constraints on `username` and `email` are enforced at both the
+        app and database levels.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                username:
+                  type: string
+            example:
+              email: testuser@example.com
+              password: password123
+              username: testuser
+  /api/user/login:
+    post:
+      summary: Login
+      responses:
+        default:
+          description: Username Login
+      tags:
+        - User
+      description: >-
+        # **POST /api/user/login**
+
+
+        Authenticates a user using either a **username or email** and a
+        **password**.
+
+
+        If the credentials are valid, the server returns a **JWT access token**
+        and **refresh token**.
+
+
+        ---
+
+
+        ## **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `username` | string | Optional\* | User's username used for login |
+
+        | `email` | string | Optional\* | User's email used for login |
+
+        | `password` | string | Yes | User's password |
+
+
+        \* Either **username OR email must be provided**, but **not both**.
+
+
+        ---
+
+
+        ## **Example Request (Username Login)**
+
+
+        ```
+
+        {  "username": "newuser",  "password": "securepassword123"}
+
+         ```
+
+        ## **Example Request (Email Login)**
+
+
+        ```
+
+        {  "email": "user@example.com",  "password": "securepassword123"}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Successful Login**
+
+
+        Returned when authentication is successful. The response contains an
+        **access token** and **refresh token**.
+
+
+        ```
+
+        {  
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",  
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - Both `username` and `email` are provided
+            
+        - Neither `username` nor `email` is provided
+            
+        - Required fields are missing
+            
+        - Input fields are not strings
+            
+
+        Example:
+
+
+        ```
+
+        {  "error": "Username or email, and password are required."}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Provide either username or email, not both."}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned when the **username/email or password is incorrect**.
+
+
+        ```
+
+        {  "error": "Invalid username or email and password."}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs during authentication.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Passwords are verified using **bcrypt** against the stored hashed
+        password.
+            
+        - A **JWT access token** and **refresh token** are generated upon
+        successful login.
+            
+        - **Access Token Expiry:** 15 minutes
+            
+        - **Refresh Token Expiry:** 1 day
+            
+        - The token payload contains:
+            
+            - `userId`
+                
+            - `username`
+                
+            - `role`
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+            example:
+              username: testuser
+              password: password123
+  /api/user/{userId}/profile:
+    get:
+      summary: Profile
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **GET /api/user/\[id\]/profile**
+
+
+        Retrieves the profile information for a specific user by their **user
+        ID**.
+
+
+        This endpoint returns basic profile data such as the user's **username,
+        email, and account metadata**.
+
+
+        ---
+
+
+        ## **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | integer | Yes | The unique ID of the user whose profile is
+        being requested |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        GET /api/user/1/profile
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Profile Retrieved**
+
+
+        Returned when the user exists and their profile information is
+        successfully retrieved.
+
+
+        ```
+
+        {  "user": 
+             {    
+             "id": 1,    
+             "username": "newuser",    
+             "email": "user@example.com",    
+             "createdAt": "2026-03-06T00:00:00.000Z",    
+             "updatedAt": "2026-03-06T00:00:00.000Z"  
+             }
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if the provided user ID is invalid or incorrectly formatted.
+
+
+        ```
+
+        {  "error": "Invalid user ID."}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if no user exists with the specified ID.
+
+
+        ```
+
+        {  "error": "User not found."}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs while retrieving the
+        profile.
+
+
+        ```
+
+        {  "error": "Failed to retrieve user profile"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - This endpoint retrieves **profile information only**.
+            
+        - Sensitive information such as **passwords** is never returned.
+            
+        - The user must exist in the database for the request to succeed.
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/user/profile:
+    patch:
+      summary: Profile
+      responses:
+        default:
+          description: Partial Update
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **PATCH /api/user/profile**
+
+
+        Updates the authenticated user’s profile information.
+
+
+        This endpoint allows a logged-in user to update their **username,
+        avatar, or favorite team**.  
+          
+        Authentication is required using a **Bearer access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        This endpoint requires a **JWT access token** in the `Authorization`
+        header.
+
+
+        Example:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Request Body**
+
+
+        At least **one field must be provided**.
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `username` | string | Optional | New username for the user |
+
+        | `avatar` | string | Optional | URL or identifier for the user's avatar
+        |
+
+        | `favoriteTeamId` | number | Optional | ID of the user's favorite team
+        |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        {  
+             "username": "sportsfan123",  
+             "avatar": "https://example.com/avatar.png",  
+             "favoriteTeamId": 5
+        }
+
+         ```
+
+        Example updating only one field:
+
+
+        ```
+
+        {  "avatar": "https://example.com/new-avatar.png"}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Profile Updated**
+
+
+        Returned when the user's profile is successfully updated.
+
+
+        ```
+
+        {  
+             "id": 1,  
+             "username": "sportsfan123",  
+             "email": "user@example.com",  
+             "avatar": "https://example.com/avatar.png",  
+             "favoriteTeamId": 5,  
+             "createdAt": "2026-03-06T00:00:00.000Z",  
+             "updatedAt": "2026-03-06T01:15:00.000Z"
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - No fields are provided
+            
+        - Invalid field types are provided
+            
+        - Username is empty
+            
+        - Username is already taken
+            
+        - Favorite team does not exist
+            
+
+        Example:
+
+
+        ```
+
+        {  "error": "At least one field (username, avatar, favoriteTeamId) is
+        required."}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Username already taken"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Team not found"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not contain a valid authorization token
+            
+        - The token is invalid or expired
+            
+        - The user associated with the token does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Authentication is required using a **JWT access token**.
+            
+        - Only the **authenticated user** can update their own profile.
+            
+        - The **username must be unique** across all users.
+            
+        - The **favorite team must exist** in the database.
+            
+        - Passwords are never returned in API responses.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                avatar:
+                  type: string
+                favoriteTeamId:
+                  type: integer
+            example:
+              username: coolgirl
+              avatar: tempavatarlol
+              favoriteTeamId: 2
+  /api/user/{userId}/follow:
+    post:
+      summary: Follow User
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **POST /api/user/\[id\]/follow**
+
+
+        Allows an authenticated user to **follow another user**.
+
+
+        The authenticated user becomes the **follower**, and the user specified
+        by `{id}` becomes the **following** user.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        This endpoint requires a **Bearer token** in the `Authorization` header.
+
+
+        Example:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | The ID of the user to follow |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        POST /api/user/5/follow
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **201 Created — Successfully Followed**
+
+
+        Returned when the authenticated user successfully follows another user.
+
+
+        ```
+
+        {  
+             "message": "Followed successfully", 
+             "follow": {    
+                  "followerId": 1,   
+                  "followingId": 5  
+             }
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - The provided user ID is invalid
+            
+        - The user attempts to follow themselves
+            
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid user ID"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Cannot follow yourself"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include an authorization token
+            
+        - The token is invalid
+            
+        - The authenticated user no longer exists
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if the user being followed does not exist.
+
+
+        ```
+
+        {  "error": "User to follow not found"}
+
+         ```
+
+        ---
+
+
+        ## **409 Conflict**
+
+
+        Returned if the authenticated user already follows the target user.
+
+
+        ```
+
+        {  "error": "Already following this user"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Unfollow User
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **DELETE /api/user/\[id\]/follow**
+
+
+        Allows an authenticated user to **unfollow another user**.
+
+
+        This removes the follow relationship between the authenticated user and
+        the specified user.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `id` | number | Yes | The ID of the user to unfollow |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        DELETE /api/user/5/follow
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Successfully Unfollowed**
+
+
+        ```
+
+        {  "message": "Unfollowed successfully"}
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - The provided user ID is invalid
+            
+        - The user attempts to unfollow themselves
+            
+
+        ```
+
+        {  "error": "Invalid user ID"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Cannot unfollow yourself"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if the request does not include a valid authentication token.
+
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if the follow relationship does not exist.
+
+
+        ```
+
+        {  "error": "Follow relationship not found"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/user/following:
+    get:
+      summary: Get Following
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **GET /api/user/following**
+
+
+        Retrieves a list of all users that the **authenticated user is
+        following**.
+
+
+        Each entry includes the followed user’s **ID, username, avatar**, and
+        the **date they were followed**.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header.
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Example Request**
+
+
+        ```
+
+        GET /api/user/following
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — List of Following Users**
+
+
+        Returned when the request is successful.
+
+
+        The `following` array contains objects representing each user the
+        authenticated user is following.
+
+
+        ```
+
+        {  "following": [    
+             {      "id": 5,      "username": "sportsfan123",      "avatar": "https://example.com/avatar.png",      "followedAt": "2026-03-06T01:15:00.000Z"    },    
+             {      "id": 8,      "username": "hoopster99",      "avatar": "https://example.com/avatar2.png",      "followedAt": "2026-03-05T22:30:00.000Z"    }  
+             ]     
+        }
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The authenticated user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only authenticated users can access their following list.
+            
+        - Users are returned in **descending order** of when they were followed
+        (`followedAt`).
+            
+        - Sensitive data such as passwords are never included in the response.
+            
+        - Each entry includes:
+            
+            - `id` — User ID of the followed user
+                
+            - `username` — Followed user’s username
+                
+            - `avatar` — URL of the followed user’s avatar
+                
+            - `followedAt` — Timestamp of when the follow occurred
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/user/followers:
+    get:
+      summary: Get Followers
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **GET /api/user/followers**
+
+
+        Retrieves a list of all users who are **following the authenticated
+        user**.  
+          
+        Each entry includes the follower’s **ID, username, avatar**, and the
+        **date they followed**.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Example Request**
+
+
+        ```
+
+        GET /api/user/followers
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — List of Followers**
+
+
+        Returned when the request is successful.  
+          
+        The `followers` array contains objects representing each user who
+        follows the authenticated user.
+
+
+        ```
+
+        {  "followers": [    
+             {      "id": 2,      "username": "hoopster99",      "avatar": "https://example.com/avatar2.png",      "followedAt": "2026-03-05T22:30:00.000Z"    },    
+             {      "id": 7,      "username": "sportsfan123",      "avatar": "https://example.com/avatar.png",      "followedAt": "2026-03-04T18:45:00.000Z"    }  
+             ]
+        }
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The authenticated user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only authenticated users can access their followers list.
+            
+        - Users are returned in **descending order** of when they started
+        following (`followedAt`).
+            
+        - Sensitive data such as passwords are never included in the response.
+            
+        - Each entry includes:
+            
+            - `id` — Follower’s user ID
+                
+            - `username` — Follower’s username
+                
+            - `avatar` — URL of the follower’s avatar
+                
+            - `followedAt` — Timestamp of when the follow occurred
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/user/followers/{userId}:
+    delete:
+      summary: Remove Follower
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **DELETE /api/user/followers/{followerId}**
+
+
+        Removes a follower from the authenticated user’s account.  
+          
+        The authenticated user can remove any user who is currently following
+        them.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `followerId` | number | Yes | The ID of the follower to remove |
+
+
+        ---
+
+
+        # **Example Request**
+
+
+        ```
+
+        DELETE /api/user/followers/5
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Follower Removed**
+
+
+        Returned when the follower relationship is successfully deleted.
+
+
+        ```
+
+        {  "message": "Follower removed successfully"}
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if the `followerId` is invalid or not a number.
+
+
+        ```
+
+        {  "error": "Invalid follower ID"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if the follower relationship does not exist.
+
+
+        ```
+
+        {  "error": "Follower relationship not found"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only authenticated users can remove followers from their account.
+            
+        - Removing a follower does **not delete the follower’s account**—it
+        simply deletes the follow relationship.
+            
+        - The `followerId` must correspond to a user who is currently following
+        the authenticated user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/user/theme:
+    patch:
+      summary: Theme
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **PATCH /api/user/theme**
+
+
+        Allows an authenticated user to **change their theme** preference.  
+          
+        Users can switch between **LIGHT** and **DARK** mode.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `themeMode` | string | Yes | The desired theme mode. Must be either
+        `"LIGHT"` or `"DARK"` |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        {  "themeMode": "DARK"}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Theme Updated**
+
+
+        Returned when the theme is successfully updated.
+
+
+        ```
+
+        {  "themeMode": "DARK"}
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if the `themeMode` value is invalid.
+
+
+        ```
+
+        {  "error": "Invalid theme mode. Must be LIGHT or DARK"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The authenticated user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only authenticated users can update their theme.
+            
+        - The `themeMode` field accepts only `"LIGHT"` or `"DARK"`.
+            
+        - The response returns the **updated theme mode** after successful
+        update.
+            
+        - No other user data is returned.
+  /api/user/appeal:
+    post:
+      summary: Appeal
+      responses: {}
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      description: >-
+        # **POST /api/user/appeal**
+
+
+        Allows a **banned user** to submit an appeal explaining why their ban
+        should be lifted.
+
+
+        Only users with `isBanned = true` can submit an appeal.  
+          
+        Users can have **only one pending appeal** at a time.
+
+
+        Authentication is required using a **JWT access token**.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT generated during login.
+
+
+        ---
+
+
+        # **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `reason` | string | Yes | The reason for the appeal. Must be a
+        non-empty string. |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        {  "reason": "I believe my account was banned by mistake. Please review
+        my activity."}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **201 Created — Appeal Submitted**
+
+
+        Returned when the appeal is successfully created.
+
+
+        ```
+
+        {  
+             "id": 12,  
+             "userId": 5,  
+             "reason": "I believe my account was banned by mistake. Please review my activity.",  
+             "status": "PENDING",  
+             "createdAt": "2026-03-06T15:20:00.000Z",  
+             "updatedAt": "2026-03-06T15:20:00.000Z"
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - The user is not banned
+            
+        - The `reason` is missing or not a string
+            
+        - The user already has a pending appeal
+            
+
+        Examples:
+
+
+        ```
+
+        {  "error": "You are not banned"}
+
+         ```
+
+        ```
+
+        {  "error": "Reason is required"}
+
+         ```
+
+        ```
+
+        {  "error": "Reason must be a string"}
+
+         ```
+
+        ```
+
+        {  "error": "You already have a pending appeal"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The authenticated user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only banned users can submit an appeal.
+            
+        - Users may only have **one pending appeal** at a time.
+            
+        - The `reason` field must be **non-empty** and of type **string**.
+            
+        - The response returns the full appeal object, including `status` and
+        timestamps.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+            example:
+              reason: im sorry
+  /api/admin/ban/{userId}:
+    patch:
+      summary: Ban User
+      responses: {}
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      description: >-
+        # **PATCH /api/admin/ban/\[userId\]**
+
+
+        Allows an **admin** to **ban or unban a user** by updating their
+        `isBanned` status.
+
+
+        Authentication is required, and only users with the **ADMIN** role can
+        perform this action.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT for a user with `role = ADMIN`.
+
+
+        ---
+
+
+        # **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `userId` | number | Yes | The ID of the user to ban or unban |
+
+
+        ---
+
+
+        # **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `result` | string | Yes | Must be either `"BAN"` to ban the user or
+        `"UNBAN"` to unban the user |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        PATCH /api/admin/ban/5
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <admin_access_token>
+
+         ```
+
+        Body:
+
+
+        ```
+
+        {  "result": "BAN"}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — User Ban Status Updated**
+
+
+        Returned when the user is successfully banned or unbanned.
+
+
+        ```
+
+        {  
+             "id": 5,  
+             "username": "exampleUser",  
+             "email": "user@example.com",  
+             "role": "USER",  
+             "isBanned": true,  
+             "createdAt": "2026-03-01T12:00:00.000Z",  
+             "updatedAt": "2026-03-06T16:00:00.000Z"
+        }
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - The `result` field is missing or invalid
+            
+        - The `userId` parameter is missing or not a number
+            
+
+        Examples:
+
+
+        ```
+
+        {  "error": "Ban result is required"}
+
+         ```
+
+        ```
+
+        {  "error": "Ban result must be a string"}
+
+         ```
+
+        ```
+
+        {  "error": "Invalid ban result"}
+
+         ```
+
+        ```
+
+        {  "error": "Valid userId parameter is required"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The admin user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **403 Forbidden**
+
+
+        Returned if the authenticated user is **not an admin**.
+
+
+        ```
+
+        {  "error": "Forbidden"}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if the target user does not exist.
+
+
+        ```
+
+        {  "error": "User not found"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only **admin users** can ban or unban other users.
+            
+        - The `result` field must be `"BAN"` or `"UNBAN"` (case-insensitive).
+            
+        - The response returns the **updated user object**, including `isBanned`
+        status.
+            
+        - This endpoint does **not delete the user account**—it only updates the
+        `isBanned` flag.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result:
+                  type: string
+            example:
+              result: UNBAN
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/admin/report/{reportId}:
+    patch:
+      summary: Update Report
+      responses: {}
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      description: >-
+        # **PATCH /api/admin/report/{reportId}**
+
+
+        Allows an **admin** to **review a report** by either **approving** it
+        (hiding the reported content) or **dismissing** it.
+
+
+        Once reviewed, a report cannot be modified again.
+
+
+        Authentication is required, and only users with the **ADMIN** role can
+        perform this action.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        The token must be a valid JWT for a user with `role = ADMIN`.
+
+
+        ---
+
+
+        # **Path Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `reportId` | number | Yes | The ID of the report to review |
+
+
+        ---
+
+
+        # **Request Body**
+
+
+        | Field | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `action` | string | Yes | The action to perform. Must be `"APPROVE"`
+        to hide the content or `"DISMISS"` to ignore the report |
+
+
+        ---
+
+
+        ## **Example Request**
+
+
+        ```
+
+        PATCH /api/admin/report/15
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <admin_access_token>
+
+         ```
+
+        Body:
+
+
+        ```
+
+        {  "action": "APPROVE"}
+
+         ```
+
+        ---
+
+
+        # **Responses**
+
+
+        ## **200 OK — Report Reviewed**
+
+
+        Returned when the report is successfully approved or dismissed.
+
+
+        ```
+
+        {  "message": "Report approve successfully"}
+
+         ```
+
+        Example for dismiss:
+
+
+        ```
+
+        {  "message": "Report dismiss successfully"}
+
+         ```
+
+        ---
+
+
+        ## **400 Bad Request**
+
+
+        Returned if:
+
+
+        - `action` is missing or invalid
+            
+        - `reportId` is missing or not a number
+            
+        - The report has already been reviewed
+            
+
+        Examples:
+
+
+        ```
+
+        {  "error": "Action is required"}
+
+         ```
+
+        ```
+
+        {  "error": "Action must be a string"}
+
+         ```
+
+        ```
+
+        {  "error": "Invalid action. Must be APPROVE or DISMISS"}
+
+         ```
+
+        ```
+
+        {  "error": "Report already reviewed"}
+
+         ```
+
+        ```
+
+        {  "error": "Invalid Report ID"}
+
+         ```
+
+        ---
+
+
+        ## **401 Unauthorized**
+
+
+        Returned if:
+
+
+        - The request does not include a valid token
+            
+        - The token is invalid or expired
+            
+        - The admin user does not exist
+            
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        Example:
+
+
+        ```
+
+        {  "error": "Invalid token"}
+
+         ```
+
+        ---
+
+
+        ## **403 Forbidden**
+
+
+        Returned if the authenticated user is **not an admin**.
+
+
+        ```
+
+        {  "error": "Forbidden"}
+
+         ```
+
+        ---
+
+
+        ## **404 Not Found**
+
+
+        Returned if the report does not exist.
+
+
+        ```
+
+        {  "error": "Report not found"}
+
+         ```
+
+        ---
+
+
+        ## **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Only **admin users** can approve or dismiss reports.
+            
+        - Approving a report automatically **hides the reported content**:
+            
+            - If the report is for a thread, the thread is hidden and closed.
+                
+            - If the report is for a post, the post is hidden.
+                
+        - Once a report is reviewed (`isResolved = true`), it cannot be modified
+        again.
+            
+        - The response includes a confirmation `message` indicating the action
+        performed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+            example:
+              action: APPROVE
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/admin/report/queue:
+    get:
+      summary: Get All Reports
+      responses: {}
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      description: >-
+        # **GET /api/admin/report/queue**
+
+
+        Retrieves a **list of all pending reports** for review by an **admin**,
+        including AI-generated toxicity verdicts.
+
+
+        Reports are grouped by **content** (post or thread) and **sorted** by
+        severity and number of reports.
+
+
+        ---
+
+
+        # **Authentication**
+
+
+        Include a **Bearer token** in the `Authorization` header:
+
+
+        ```
+
+        Authorization: Bearer <access_token>
+
+         ```
+
+        Only users with the **ADMIN** role can access this endpoint.
+
+
+        ---
+
+
+        # **Query Parameters**
+
+
+        None. All unresolved reports are returned automatically.
+
+
+        ---
+
+
+        # **Response Fields**
+
+
+        | Field | Type | Description |
+
+        | --- | --- | --- |
+
+        | `contentType` | string | `"POST"` or `"THREAD"` indicating type of
+        content reported |
+
+        | `contentId` | number | ID of the post or thread |
+
+        | `reportCount` | number | Number of reports submitted against this
+        content |
+
+        | `worstAiVerdict` | string | AI moderation verdict: `"SAFE"`,
+        `"WARNING"`, `"VIOLATION"` |
+
+        | `highestToxicity` | number | Highest toxicity score among all reports
+        for this content (0–1) |
+
+        | `contentPreview` | string | A short preview (first 100 characters) of
+        the content |
+
+        | `aiExplanation` | string | Explanation from AI moderation model about
+        the verdict |
+
+
+        ---
+
+
+        # **Example Request**
+
+
+        ```
+
+        GET /api/admin/report/queue
+
+         ```
+
+        Header:
+
+
+        ```
+
+        Authorization: Bearer <admin_access_token>
+
+         ```
+
+        ---
+
+
+        # **Example Response (200 OK)**
+
+
+        ```
+
+        [  
+             {    
+             "contentType": "POST",    
+             "contentId": 42,    
+             "reportCount": 3,    
+             "worstAiVerdict": "VIOLATION",    
+             "highestToxicity": 0.92,    
+             "contentPreview": "This is an example post content that violates community guidelines...",    
+             "aiExplanation": "AI verdict VIOLATION: toxicity score 0.92 from unitary/toxic-bert."  
+             },  
+             {    
+             "contentType": "THREAD",    
+             "contentId": 15,    "reportCount": 1,    
+             "worstAiVerdict": "WARNING",    
+             "highestToxicity": 0.55,    
+             "contentPreview": "Discussion about sensitive topics that may need review...",    
+             "aiExplanation": "AI verdict WARNING: toxicity score 0.55 from unitary/toxic-bert."  
+             }  
+        ]
+
+         ```
+
+        ---
+
+
+        # **401 Unauthorized**
+
+
+        Returned if the request does not include a valid token, or the token is
+        invalid/expired.
+
+
+        ```
+
+        {  "error": "Unauthorized"}
+
+         ```
+
+        ---
+
+
+        # **403 Forbidden**
+
+
+        Returned if the authenticated user is **not an admin**.
+
+
+        ```
+
+        {  "error": "Forbidden"}
+
+         ```
+
+        ---
+
+
+        # **500 Internal Server Error**
+
+
+        Returned if an unexpected server error occurs.
+
+
+        ```
+
+        {  "error": "Internal Server Error"}
+
+         ```
+
+        ---
+
+
+        # **Notes**
+
+
+        - Reports are **grouped by content** (`postId` or `threadId`).
+            
+        - AI moderation is performed using **Hugging Face's**
+        **`unitary/toxic-bert`** model.
+            
+        - The **queue is sorted** by:
+            
+            1. `worstAiVerdict` severity (`VIOLATION > WARNING > SAFE`)
+                
+            2. Number of reports (`reportCount`)
+                
+        - The `aiExplanation` field provides context for the AI verdict, or a
+        fallback if AI analysis is unavailable.
+            
+        - Only **pending reports** (`isResolved = false`) are returned.
+  /api/digest/daily:
+    get:
+      summary: dailydigest
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: 'Example: ?date=2026-02-20'
+          deprecated: false
+          schema: {}
+          example: '2026-03-06'
+        - name: Authorization
+          in: header
+          required: false
+          deprecated: false
+          schema: {}
+          example: Bearer {{authToken}}
+      responses: {}
+      tags:
+        - Digest
+        - Daily
+      description: >-
+        # **GET /api/digest/daily**
+
+
+        Fetches the **daily sports digest**, summarizing the day’s top
+        discussions, match results, and current standings. Optionally, it
+        generates an **AI-enhanced summary** using Hugging Face’s summarization
+        models.
+
+
+        ---
+
+
+        ## **Query Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `date` | string | No | Date in `YYYY-MM-DD` format. Defaults to the
+        **current UTC date** if not provided. |
+
+
+        ---
+
+
+        ## **Behavior**
+
+
+        1. Pulls **data for the specified date** (or today by default) from the
+        database:
+            
+            - Top visible discussion threads
+                
+            - Recorded match results
+                
+            - Team standings
+                
+        2. Builds a **fallback digest** using database content (always
+        returned).
+            
+        3. Prepares a **digest formatted for AI summarization**.
+            
+        4. Attempts **AI summarization** using Hugging Face
+        (`facebook/bart-large-cnn`):
+            
+            - Checks **AI output quality**:
+                
+                - Discards low-quality or unsafe outputs
+                    
+                - Handles timeouts
+                    
+            - If AI passes checks, returns both fallback digest (`digest`) and AI summary (`aiDraft`)
+                
+        5. If AI fails, only the **fallback digest** is returned (`usedFallback:
+        true`).
+            
+
+        ---
+
+
+        ## **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "date": "2026-03-06",  
+             "message": "Daily digest generated successfully",  
+             "digest": "Daily digest for 2026-03-06. Top discussions included \"Team X wins\" ... Recorded results: Team A 2-1 Team B ... Standings snapshot: Team Y (10-3), Team Z (9-4) ...",  
+             "aiDraft": "Optional AI-generated summary of the daily digest",  
+             "sourceCounts": 
+             {    
+                  "discussions": 5,    "recordedMatches": 8,    "standingsTeams": 10  
+             },       
+             "usedFallback": true      
+        }
+
+         ```
+
+        **Notes:**
+
+
+        - `digest`: always contains a reliable summary from database content.
+            
+        - `aiDraft`: contains AI-generated summary if successful; otherwise
+        `null`.
+            
+        - `usedFallback`: `true` if AI summary is unavailable or low-quality,
+        `false` if AI summary is used.
+            
+
+        ---
+
+
+        ## **Error Responses**
+
+
+        ### **400 Invalid Date**
+
+
+        ```
+
+        {  "error": "Invalid date. Use YYYY-MM-DD."}
+
+         ```
+
+        ### **500 Missing AI Token**
+
+
+        ```
+
+        {  "error": "HF_TOKEN is not configured."}
+
+         ```
+
+        ### **500 AI Generation or Server Error**
+
+
+        ```
+
+        {  "error": "Failed to generate daily digest"}
+
+         ```
+
+        ---
+
+
+        ## **Usage Notes**
+
+
+        - **AI-enhanced summaries** are optional. The endpoint always returns a
+        reliable fallback digest.
+            
+        - **Top threads**, **matches**, and **standings** are limited:
+            
+            - Threads: top 5 most active
+                
+            - Matches: last 8 recorded
+                
+            - Standings: top 10 teams
+                
+        - AI output is validated against:
+            
+            - Echoes of the input prompt (low-quality detection)
+                
+            - Inclusion of teams mentioned in matches and standings
+                
+        - Digest is **UTC-based**, so daily coverage is consistent across
+        timezones.
+  /api/standings:
+    get:
+      summary: standings
+      parameters:
+        - name: leagueType
+          in: query
+          schema:
+            type: string
+          example: NBA
+        - name: abbreviation
+          in: query
+          schema:
+            type: string
+          example: EAST
+        - name: leagueName
+          in: query
+          schema:
+            type: string
+          example: Eastern Conference
+        - name: year
+          in: query
+          schema:
+            type: integer
+          example: '2025'
+        - name: seasonType
+          in: query
+          schema:
+            type: string
+          example: Regular Season
+        - name: refresh
+          in: query
+          schema:
+            type: boolean
+          example: 'true'
+      responses: {}
+      tags:
+        - Standings
+      description: >-
+        # **GET /api/standings**
+
+
+        Fetches **NBA standings** with optional filters. Returns normalized
+        standings data, along with metadata about the data source (database
+        cache or external API) and pagination details.
+
+
+        ---
+
+
+        ## **Query Parameters**
+
+
+        | Parameter | Type | Required | Default | Description |
+
+        | --- | --- | --- | --- | --- |
+
+        | `leagueType` | string | No | `"NBA"` | Only `"NBA"` is supported. |
+
+        | `abbreviation` | string | No | `null` | Conference shorthand (`EAST`
+        or `WEST`). |
+
+        | `leagueName` | string | No | `null` | Full conference/league name. |
+
+        | `year` | string | No | Current year | Season year for which standings
+        are requested. |
+
+        | `seasonType` | string | No | `"Regular Season"` | Season type, e.g.,
+        `"Regular Season"` or `"Playoffs"`. |
+
+        | `refresh` | boolean | No | `false` | If `true`, forces fetching the
+        latest data from the external API instead of using cached DB data. |
+
+
+        ---
+
+
+        ## **Behavior**
+
+
+        1. Reads standings from the **database first**.
+            
+        2. If the cached data is **fresh** (updated within the last hour) and
+        `refresh` is not `true`:
+            
+            - Returns **database cache** standings.
+                
+        3. If data is stale or `refresh=true`:
+            
+            - Calls **external API** for updated standings.
+                
+            - Cleans and normalizes the data.
+                
+            - Upserts teams into the database for future use.
+                
+            - Returns the latest standings.
+                
+        4. If external API fails:
+            
+            - Returns **stale cached data** if available.
+                
+            - Otherwise, returns a `500` error.
+                
+
+        ---
+
+
+        ## **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "filters": {    "leagueType": "NBA",    "abbreviation": "EAST",    "leagueName": null,    "year": "2026",    "seasonType": "Regular Season"  },  
+             "leagueName": "Eastern Conference",  
+             "abbreviation": "EAST",  
+             "year": "2026",  
+             "seasonType": "Regular Season",  
+             "startDate": "2025-10-01",  
+             "endDate": "2026-04-15",  
+             "count": 15,  
+             "standings": [    
+                  {      
+                  "id": 1,      "teamId": "1",      "name": "Boston Celtics",      "logoUrl": "https://...",      "abbreviation": "BOS",      "wins": 48,      "losses": 22,      "rank": 1,      "winPct": 0.686,      "gamesBack": 0,      "streak": "W3",      "homeRecord": "27-8",      "awayRecord": "21-14",      "lastTenRecord": "7-3",      "pointsFor": 118.2,      "pointsAgainst": 110.4,      "conference": "Eastern Conference",      "division": "Atlantic",      "stats": [],      "updatedAt": "2026-03-06T12:00:00.000Z"    
+                  }  
+             ],  
+             "dataSource": "external-api",  
+             "pagination": null,  
+             "plan": null     
+        }
+
+         ```
+
+        **Notes:**
+
+
+        - `dataSource`: Indicates whether the data came from `database-cache`,
+        `external-api`, or `database-fallback`.
+            
+        - `standings`: Array of normalized team standings.
+            
+        - Pagination may be provided if multiple pages were fetched from the
+        external API.
+            
+
+        ---
+
+
+        ## **Error Responses**
+
+
+        ### **400 Invalid League Type**
+
+
+        ```
+
+        {  "error": "Only leagueType=NBA is supported by this endpoint."}
+
+         ```
+
+        ### **500 External or Internal Error**
+
+
+        ```
+
+        {  "error": "Failed to fetch standings."}
+
+         ```
+
+        ### **Fallback Warning (Optional)**
+
+
+        ```
+
+        {  
+             "filters": { ... },  
+             "leagueName": "Eastern Conference",  
+             "abbreviation": "EAST",  "year": "2026",  
+             "seasonType": "Regular Season",  
+             "count": 15,  
+             "standings": [ ... ],  
+             "dataSource": "database-fallback",  
+             "stale": true,  
+             "warning": "Serving stale standings cache because upstream refresh failed."
+        }
+
+         ```
+
+        ---
+
+
+        ## **Usage Notes**
+
+
+        - Only **NBA** standings are supported.
+            
+        - Cached data is considered **fresh for 1 hour**.
+            
+        - `refresh=true` forces external API fetch even if cache is fresh.
+            
+        - Filters such as `abbreviation` and `leagueName` allow narrowing down
+        to a specific conference.
+            
+        - Returned standings are **normalized** for easier consumption by
+        clients, with consistent keys like `wins`, `losses`, `rank`, `winPct`,
+        `streak`, and `pointsFor/pointsAgainst`.
+  /api/teams:
+    get:
+      summary: teams
+      parameters:
+        - name: league
+          in: query
+          description: Optional league filter
+          schema:
+            type: string
+          example: NBA
+        - name: displayName
+          in: query
+          description: Optional more "user facing" name filter
+          schema:
+            type: string
+          example: Los Angeles Lakers
+        - name: abbreviation
+          in: query
+          description: Optional abbreviation filter
+          schema:
+            type: string
+          example: LAL
+        - name: name
+          in: query
+          schema:
+            type: string
+          example: Lakers
+      responses: {}
+      tags:
+        - Teams
+      description: >-
+        # **GET /api/teams**
+
+
+        Fetches **NBA teams** from the external API, normalizes the data,
+        upserts into the database, and returns the saved team records.
+
+
+        ---
+
+
+        ## **Query Parameters**
+
+
+        | Parameter | Type | Required | Default | Description |
+
+        | --- | --- | --- | --- | --- |
+
+        | `league` | string | No | `"NBA"` | League to fetch teams from.
+        Currently only `"NBA"` is supported. |
+
+        | `name` | string | No | `null` | Exact or partial match on team name. |
+
+        | `displayName` | string | No | `null` | Filter by team display name. |
+
+        | `abbreviation` | string | No | `null` | Team abbreviation (e.g.,
+        `"BOS"`, `"RAP"`). |
+
+
+        ---
+
+
+        ## **Behavior**
+
+
+        1. Calls **external API** with provided filters.
+            
+        2. Normalizes each team record:
+            
+            - `name`: standardized team name.
+                
+            - `logoUrl`: team logo URL.
+                
+            - `conference`: defaults to `"Unknown"` if missing.
+                
+            - `division`: defaults to `"Unknown"` if missing.
+                
+        3. **Upserts** the team into the database:
+            
+            - If the team already exists, updates `logoUrl`, `conference`, and `division`.
+                
+            - If the team does not exist, creates a new record with `wins: 0` and `losses: 0`.
+                
+        4. Returns the **saved team records** with all normalized fields.
+            
+        5. If no query parameters are provided, returns **all teams in the
+        league**.
+            
+
+        ---
+
+
+        ## **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "count": 30,  
+             "teams": [    
+                {      "id": 1,      "name": "Boston Celtics",      "logoUrl": "https://example.com/boston.png",      "wins": 0,      "losses": 0,      "conference": "Eastern Conference",      "division": "Atlantic"    },    
+                {      "id": 2,      "name": "Toronto Raptors",      "logoUrl": "https://example.com/toronto.png",      "wins": 0,      "losses": 0,      "conference": "Eastern Conference",      "division": "Atlantic"    }  
+                
+             ],  
+             "dataSource": "external-api"
+        }
+
+         ```
+
+        **Notes:**
+
+
+        - `count`: Number of teams returned.
+            
+        - `teams`: Array of normalized team records.
+            
+        - `dataSource`: Indicates the data source (`external-api`).
+            
+
+        ---
+
+
+        ## **Error Responses**
+
+
+        ### **500 Missing Configuration**
+
+
+        ```
+
+        {  "error": "NBA_API_BASE_URL is not configured."}
+
+         ```
+
+        ### **502 Upstream API Failure**
+
+
+        ```
+
+        {  "error": "Failed to fetch team data from upstream provider."}
+
+         ```
+
+        ### **500 Internal Error**
+
+
+        ```
+
+        {  "error": "Failed to sync teams."}
+
+         ```
+
+        ---
+
+
+        ## **Usage Notes**
+
+
+        - Designed to **populate the database** with team data initially and
+        keep it updated periodically.
+            
+        - Normalizes all fields for consistent consumption in downstream
+        endpoints (e.g., `/standings`, `/matches`).
+            
+        - If filters are used, only matching teams are returned; otherwise, all
+        teams in the league are returned.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/matches:
+    get:
+      summary: matches
+      parameters:
+        - name: date
+          in: query
+          description: Single Day Query
+          schema:
+            type: string
+          example: '2026-03-06'
+        - name: fromDate
+          in: query
+          description: From Day (Inclusive)
+          schema:
+            type: string
+          example: '2026-03-06'
+        - name: toDate
+          in: query
+          description: To Date (inclusive)
+          schema:
+            type: string
+          example: '2026-03-10'
+      responses: {}
+      tags:
+        - Matches
+      description: >-
+        # **GET /api/matches**
+
+
+        Fetches **NBA matches** from the external API or the local database.
+        Returns normalized match data along with discovery metadata such as
+        available matchdays and stages.
+
+
+        ---
+
+
+        ## **Query Parameters**
+
+
+        | Parameter | Type | Required | Description |
+
+        | --- | --- | --- | --- |
+
+        | `date` | string (YYYY-MM-DD) | No | Fetch matches for a single day.
+        Cannot be combined with `fromDate`/`toDate`. |
+
+        | `fromDate` | string (YYYY-MM-DD) | No | Start of a date range
+        (inclusive). Must be used with `toDate`. |
+
+        | `toDate` | string (YYYY-MM-DD) | No | End of a date range (inclusive).
+        Must be used with `fromDate`. Maximum range: 14 days. |
+
+        | `stage` | string (`regular` | `preseason` | `playoffs`) | No | Filter
+        matches by stage. |
+
+        | `teamId` | string | number | No | External team ID to filter matches
+        by a specific team. |
+
+
+        **Important:**
+
+
+        - You must provide **at least one filter**: `date`, `stage`, or a date
+        range (`fromDate` + `toDate`).
+            
+        - `date` is for single-day queries; `fromDate` + `toDate` is for ranges.
+        They **cannot be combined**.
+            
+
+        ---
+
+
+        ## **Success Response (200 OK)**
+
+
+        ```
+
+        {  
+             "status": 200,  
+             "filters": {    "date": "2026-03-06",    "fromDate": null,    "toDate": null,    "stage": "regular",    "teamId": "1610612738"  },  
+             "count": 2,  
+             "matches": 
+             [    
+                {      "matchId": "12345",      "homeTeam": "Boston Celtics",      "awayTeam": "Miami Heat",      "tipOff": "2026-03-06T00:30:00.000Z",      "status": "scheduled",      "score": { "home": null, "away": null },      "venue": "TD Garden",      "stage": "regular"    },    
+                {      "matchId": "12346",      "homeTeam": "New York Knicks",      "awayTeam": "Brooklyn Nets",      "tipOff": "2026-03-06T03:00:00.000Z",      "status": "finished",      "score": { "home": 110, "away": 104 },      "venue": "Madison Square Garden",      "stage": "regular"    }  
+             ],  
+             "availableMatchdays": ["2026-03-06"],  
+             "availableStages": ["regular"],  
+             "dataSource": "external-api"     
+        }
+
+         ```
+
+        **Notes:**
+
+
+        - `filters`: Echoes the filters used in the request.
+            
+        - `count`: Number of matches returned.
+            
+        - `matches`: Array of normalized match objects.
+            
+        - `availableMatchdays`: All dates present in the returned data.
+            
+        - `availableStages`: All stages present in the returned data.
+            
+        - `dataSource`: Either `"external-api"`, `"database-cache"`, or
+        `"database-fallback"`.
+            
+
+        ---
+
+
+        ## **Match Object Schema**
+
+
+        | Field | Type | Description |
+
+        | --- | --- | --- |
+
+        | `matchId` | string | Unique identifier for the match. |
+
+        | `homeTeam` | string | Name of the home team. |
+
+        | `awayTeam` | string | Name of the away team. |
+
+        | `tipOff` | string (ISO 8601) | Scheduled tip-off time. |
+
+        | `status` | string (`scheduled` | `live` | `finished`) | Current match
+        status. |
+
+        | `score` | object | Home and away scores (null if not available). |
+
+        | `score.home` | number | null | Home team score. |
+
+        | `score.away` | number | null | Away team score. |
+
+        | `venue` | string | null | Match venue (if available). |
+
+        | `stage` | string | Match stage (`regular`, `preseason`, `playoffs`). |
+
+
+        ---
+
+
+        ## **Error Responses**
+
+
+        ### **400 Bad Request**
+
+
+        | Condition | Response |
+
+        | --- | --- |
+
+        | No filters provided | `{ "status": 400, "error": "Provide at least one
+        filter: date or stage." }` |
+
+        | `date` + `fromDate`/`toDate` used together | `{ "status": 400,
+        "error": "Use either date or fromDate/toDate, not both." }` |
+
+        | Only one of `fromDate` or `toDate` provided | `{ "status": 400,
+        "error": "Provide both fromDate and toDate." }` |
+
+        | Invalid date format | `{ "status": 400, "error": "Invalid date. Use
+        YYYY-MM-DD." }` |
+
+        | Invalid date range format | `{ "status": 400, "error": "Invalid date
+        range. Use YYYY-MM-DD for fromDate and toDate." }` |
+
+        | `toDate` before `fromDate` | `{ "status": 400, "error": "toDate must
+        be on or after fromDate." }` |
+
+        | Date range exceeds 14 days | `{ "status": 400, "error": "Date range
+        cannot exceed 14 days." }` |
+
+        | Invalid stage value | `{ "status": 400, "error": "Invalid stage. Use
+        regular, preseason, or playoffs." }` |
+
+
+        ### **502 Upstream Failure**
+
+
+        ```
+
+        { "status": 502, "error": "Failed to fetch match data from upstream
+        provider." }
+
+         ```
+
+        ### **500 Internal Error**
+
+
+        | Condition | Response |
+
+        | --- | --- |
+
+        | Missing external API URL | `{ "status": 500, "error":
+        "NBA_API_BASE_URL is not configured." }` |
+
+        | Generic failure | `{ "status": 500, "error": "Failed to fetch
+        matches." }` |
+
+
+        ---
+
+
+        ## **Usage Notes**
+
+
+        - Designed to fetch, normalize, and optionally **cache matches in the
+        database**.
+            
+        - Supports **single-day queries**, **date ranges**, and **stage/team
+        filtering**.
+            
+        - Returns **discovery metadata** to help clients understand available
+        matchdays and stages.
+            
+        - Automatically **deduplicates and upserts matches** to prevent
+        duplicates from multiple API calls.
+            
+        - If external API fails, the endpoint serves **cached database matches**
+        as a fallback.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - BearerAuth: []

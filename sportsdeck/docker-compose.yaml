@@ -1,0 +1,138 @@
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sportsdeck
+      POSTGRES_USER: sportsdeck
+      POSTGRES_PASSWORD: sportsdeck
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sportsdeck -d sportsdeck"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://sportsdeck:sportsdeck@db:5432/sportsdeck?schema=public
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_URL: http://localhost:8087
+      APP_BASE_URL: http://app:3000
+      CRON_BASE_URL: http://app:3000
+      PRISMA_CONNECTION_LIMIT: ${PRISMA_CONNECTION_LIMIT:-2}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      NBA_API_BASE_URL: ${NBA_API_BASE_URL:-}
+      NBA_API_KEY: ${NBA_API_KEY:-}
+      NBA_API_HOST: ${NBA_API_HOST:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      MOCK_EXTERNAL_APIS: ${MOCK_EXTERNAL_APIS:-false}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/landing >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  cron:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://sportsdeck:sportsdeck@db:5432/sportsdeck?schema=public
+      REDIS_URL: redis://redis:6379
+      APP_BASE_URL: http://app:3000
+      CRON_BASE_URL: http://app:3000
+      CRON_MATCHES_INTERVAL_SECONDS: ${CRON_MATCHES_INTERVAL_SECONDS:-3600}
+      CRON_SENTIMENT_INTERVAL_SECONDS: ${CRON_SENTIMENT_INTERVAL_SECONDS:-3600}
+      ENABLE_CRON_JOBS: ${ENABLE_CRON_JOBS:-true}
+      HF_TOKEN: ${HF_TOKEN:-}
+      MOCK_EXTERNAL_APIS: ${MOCK_EXTERNAL_APIS:-false}
+      NBA_API_BASE_URL: ${NBA_API_BASE_URL:-}
+      NBA_API_KEY: ${NBA_API_KEY:-}
+      NBA_API_HOST: ${NBA_API_HOST:-}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+    command: ["./docker/cron-runner.sh"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8087:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  import-data:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://sportsdeck:sportsdeck@db:5432/sportsdeck?schema=public
+      REDIS_URL: redis://redis:6379
+      APP_BASE_URL: http://app:3000
+      CRON_BASE_URL: http://app:3000
+      NBA_API_BASE_URL: ${NBA_API_BASE_URL:-}
+      NBA_API_KEY: ${NBA_API_KEY:-}
+      NBA_API_HOST: ${NBA_API_HOST:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      MOCK_EXTERNAL_APIS: ${MOCK_EXTERNAL_APIS:-false}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET}
+    command: ["./docker/import-data-service.sh"]
+
+volumes:
+  postgres-data:
+  redis-data:

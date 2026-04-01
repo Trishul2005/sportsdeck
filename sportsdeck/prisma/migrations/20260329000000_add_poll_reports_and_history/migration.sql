@@ -1,0 +1,14 @@
+ALTER TABLE "Poll"
+ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN "version" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN "isVisible" BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE "Report"
+ADD COLUMN "pollId" INTEGER;
+
+CREATE INDEX "Poll_isVisible_createdAt_idx" ON "Poll"("isVisible", "createdAt");
+CREATE INDEX "Report_pollId_idx" ON "Report"("pollId");
+
+ALTER TABLE "Report"
+ADD CONSTRAINT "Report_pollId_fkey"
+FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE CASCADE ON UPDATE CASCADE;
