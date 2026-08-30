@@ -2,7 +2,7 @@
 
 A full-stack, basketball-first social platform for NBA fans. SportsDeck ingests live NBA data on a schedule, auto-generates a discussion thread for every match, runs AI moderation/sentiment/translation over user content, and serves it all through a Redis-cached Next.js API and a team-themed React front end.
 
-Live deployment: https://sportsdeck-7do6o7690-trishuls22-2864s-projects.vercel.app/
+Live deployment: [https://sportsdeck-7do6o7690-trishuls22-2864s-projects.vercel.app/](https://sportsdeck-2x7b.vercel.app/)
 
 ---
 
